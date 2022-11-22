@@ -35,10 +35,10 @@ def get_all_tool_id():
     sql = '''
     SELECT * 
     FROM
-        (SELECT * FROM "parameter" WHERE (topic = 'atp_hour') GROUP BY tool_id, topic ) LIMIT 3
+        (SELECT * FROM "parameter" WHERE (topic = 'uvp') GROUP BY tool_id, topic ) LIMIT 3
     '''
     result = list(CLIENT.query(sql).get_points())
-    atp_hour_df = pd.DataFrame.from_dict(result)
+    uvp_df = pd.DataFrame.from_dict(result)
 
     sql_atp = '''
     SELECT * 
@@ -48,19 +48,19 @@ def get_all_tool_id():
     result_atp = list(CLIENT.query(sql_atp).get_points())
     atp_df = pd.DataFrame.from_dict(result_atp)
 
-    sql_temp = '''
-    SELECT * FROM (SELECT * FROM "parameter" WHERE (topic = 'temperature') GROUP BY tool_id, topic)  LIMIT 3
+    sql_uvh = '''
+    SELECT * FROM (SELECT * FROM "parameter" WHERE (topic = 'uv_hour') GROUP BY tool_id, topic)  LIMIT 3
     '''
-    result_temp = list(CLIENT.query(sql_temp).get_points())
-    temp_df = pd.DataFrame.from_dict(result_temp)
+    result_uvp = list(CLIENT.query(sql_uvh).get_points())
+    uvh_df = pd.DataFrame.from_dict(result_uvp)
 
-    sql_ph = '''
-    SELECT * FROM (SELECT * FROM "parameter" WHERE (topic = 'pH') GROUP BY tool_id) LIMIT 3
+    sql_water = '''
+    SELECT * FROM (SELECT * FROM "parameter" WHERE (topic = 'water') GROUP BY tool_id) LIMIT 3
     '''
-    result_ph = list(CLIENT.query(sql_ph).get_points())
-    ph_df = pd.DataFrame.from_dict(result_ph)
+    result_water = list(CLIENT.query(sql_water).get_points())
+    water_df = pd.DataFrame.from_dict(result_water)
 
-    df = pd.concat([atp_df, atp_hour_df, temp_df, ph_df],
+    df = pd.concat([atp_df, uvp_df, uvh_df, water_df],
                    axis=0, ignore_index=True)
     pivot_df = df.pivot(index=['tool_id'],
                         columns='topic', values='value').reset_index()
@@ -70,7 +70,7 @@ def get_all_tool_id():
 
 @ router.post("/parameters")
 def write_parameter(tool_id: str = Query('1', enum=['1', '2', '3']),
-                    param_name: str = Query("atp", enum=['atp', 'temperature', 'atp_hour', 'pH'])):
+                    param_name: str = Query("atp", enum=['atp', 'uvp', 'uv_hour', 'water'])):
     value = random.randint(10, 30)
 
     param = [
