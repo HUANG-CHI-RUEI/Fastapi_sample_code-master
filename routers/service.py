@@ -35,7 +35,7 @@ def get_all_tool_id():
     sql = '''
     SELECT * 
     FROM
-        (SELECT * FROM "parameter" WHERE (topic = 'atp_hour') GROUP BY tool_id, topic LIMIT 1)
+        (SELECT * FROM "parameter" WHERE (topic = 'atp_hour') GROUP BY tool_id, topic ) LIMIT 3
     '''
     result = list(CLIENT.query(sql).get_points())
     atp_hour_df = pd.DataFrame.from_dict(result)
@@ -43,23 +43,19 @@ def get_all_tool_id():
     sql_atp = '''
     SELECT * 
     FROM
-        (SELECT * FROM "parameter" WHERE (topic = 'atp') GROUP BY tool_id, topic LIMIT 1)
+        (SELECT * FROM "parameter" WHERE (topic = 'atp') GROUP BY tool_id, topic) LIMIT 3
     '''
     result_atp = list(CLIENT.query(sql_atp).get_points())
     atp_df = pd.DataFrame.from_dict(result_atp)
 
     sql_temp = '''
-    SELECT * 
-    FROM
-        (SELECT * FROM "parameter" WHERE (topic = 'temperature') GROUP BY tool_id, topic LIMIT 1)
+    SELECT * FROM (SELECT * FROM "parameter" WHERE (topic = 'temperature') GROUP BY tool_id, topic)  LIMIT 3
     '''
     result_temp = list(CLIENT.query(sql_temp).get_points())
     temp_df = pd.DataFrame.from_dict(result_temp)
 
     sql_ph = '''
-    SELECT * 
-    FROM
-        (SELECT * FROM "parameter" WHERE (topic = 'pH') GROUP BY tool_id, topic LIMIT 1)
+    SELECT * FROM (SELECT * FROM "parameter" WHERE (topic = 'pH') GROUP BY tool_id) LIMIT 3
     '''
     result_ph = list(CLIENT.query(sql_ph).get_points())
     ph_df = pd.DataFrame.from_dict(result_ph)
