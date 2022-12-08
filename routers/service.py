@@ -20,12 +20,25 @@ def delete_table():
 
 
 @router.get("/parameters")
-def get_parameter_by_tool_id(tool_id: str = Query('1', enum=['1', '2', '3']),
-                             param_name: str = Query("temperature", enum=['atp', 'temperature', 'atp_hour'])):
+def get_parameter_by_toolid(tool_id: str = Query('1', enum=['1', '2', '3']),
+                            name: str = Query("atp", enum=['atp', 'uvp', 'uv_hour', 'water', 'carbon'])):
     sql = '''select * from "parameter" where "tool_id" = '{}' AND "topic" = '{}' LIMIT 1
-    '''.format(tool_id, param_name)
+    '''.format(tool_id, name)
 
     result = list(CLIENT.query(sql).get_points())
+    return result
+
+
+@ router.get("/carbon")
+def get_carbon_tool_id():
+
+    sql = '''
+    SELECT * 
+    FROM
+        (SELECT * FROM "parameter" WHERE (topic = 'carbon') GROUP BY tool_id, topic)  LIMIT 3
+    '''
+    result = list(CLIENT.query(sql).get_points())
+
     return result
 
 
@@ -35,7 +48,7 @@ def get_all_tool_id():
     sql = '''
     SELECT * 
     FROM
-        (SELECT * FROM "parameter" WHERE (topic = 'uvp') GROUP BY tool_id, topic ) LIMIT 3
+        (SELECT * FROM "parameter" WHERE (topic = 'uvp') GROUP BY tool_id, topic )  LIMIT 3
     '''
     result = list(CLIENT.query(sql).get_points())
     uvp_df = pd.DataFrame.from_dict(result)
@@ -43,7 +56,7 @@ def get_all_tool_id():
     sql_atp = '''
     SELECT * 
     FROM
-        (SELECT * FROM "parameter" WHERE (topic = 'atp') GROUP BY tool_id, topic) LIMIT 3
+        (SELECT * FROM "parameter" WHERE (topic = 'atp') GROUP BY tool_id, topic)  LIMIT 3
     '''
     result_atp = list(CLIENT.query(sql_atp).get_points())
     atp_df = pd.DataFrame.from_dict(result_atp)
@@ -55,7 +68,7 @@ def get_all_tool_id():
     uvh_df = pd.DataFrame.from_dict(result_uvp)
 
     sql_water = '''
-    SELECT * FROM (SELECT * FROM "parameter" WHERE (topic = 'water') GROUP BY tool_id) LIMIT 3
+    SELECT * FROM (SELECT * FROM "parameter" WHERE (topic = 'water') GROUP BY tool_id) LIMIT 3 
     '''
     result_water = list(CLIENT.query(sql_water).get_points())
     water_df = pd.DataFrame.from_dict(result_water)
@@ -70,14 +83,14 @@ def get_all_tool_id():
 
 @ router.post("/parameters")
 def write_parameter(tool_id: str = Query('1', enum=['1', '2', '3']),
-                    param_name: str = Query("atp", enum=['atp', 'uvp', 'uv_hour', 'water'])):
-    value = random.randint(10, 30)
+                    name: str = Query("atp", enum=['atp', 'uvp', 'uv_hour', 'water', 'carbon'])):
+    value = random.randint(10, 100)
 
     param = [
         {
             "measurement": "parameter",
             "tags": {
-                "topic": param_name,
+                "topic": name,
                 "tool_id": tool_id
             },
             "fields": {
